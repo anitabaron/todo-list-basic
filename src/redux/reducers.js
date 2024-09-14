@@ -1,48 +1,57 @@
 // src/redux/reducers.js
 
-import { statusFilters } from "./constants";
+const tasksInitialState = [
+  { id: 0, text: "Learn HTML and CSS", completed: true },
+  { id: 1, text: "Get good at JavaScript", completed: true },
+  { id: 2, text: "Master React", completed: false },
+  { id: 3, text: "Discover Redux", completed: false },
+  { id: 4, text: "Build amazing apps", completed: false },
+];
 
-const initialState = {
-  tasks: [
-    { id: 0, text: "Learn HTML and CSS", completed: true },
-    { id: 1, text: "Get good at JavaScript", completed: true },
-    { id: 2, text: "Master React", completed: false },
-    { id: 3, text: "Discover Redux", completed: false },
-    { id: 4, text: "Build amazing apps", completed: false },
-  ],
-  filters: {
-    status: statusFilters.all,
-  },
-};
-
-// Używamy initialState jako domyślnej wartości stanu
-export const rootReducer = (state = initialState, action) => {
-  // Reduktor rozróżnia akcje na podstawie wartości właściwości type
+// Odpowiedzialny tylko za aktualizację właściwości tasks
+// Teraz wartością parametru state będzie tablica zadań
+const tasksReducer = (state = tasksInitialState, action) => {
   switch (action.type) {
-    // Działanie zależy od typu akcji
-    case "tasks/addTask": {
-      // Należy zwrócić nowy obiekt stanu
-      return {
-        // który zawiera wszystkie dane istniejącego stanu
-        ...state,
-        // oraz nową tablicę zadań
-        tasks: [
-          // która zawiera wszystkie istniejące zadania
-          ...state.tasks,
-          // oraz obiekt nowego zadania
-          action.payload,
-        ],
-      };
-    }
+    case "tasks/addTask":
+      return [...state, action.payload];
     case "tasks/deleteTask":
-      return {
-        ...state,
-        tasks: state.tasks.filter((task) => task.id !== action.payload),
-      };
+      return state.filter((task) => task.id !== action.payload);
+    case "tasks/toggleCompleted":
+      return state.map((task) => {
+        if (task.id !== action.payload) {
+          return task;
+        }
+        return { ...task, completed: !task.completed };
+      });
     default:
-      // Każdy reduktor przyjmuje wszystkie akcje wysłane do magazynu.
-      // Jeśli reduktor nie powinien obsługiwać określonego typu akcji,
-      // należy zwrócić bieżący stan bez zmian.
       return state;
   }
 };
+
+const filtersInitialState = {
+  status: statusFilters.all,
+};
+
+// Odpowiedzialny tylko za aktualizację właściwości filters
+// Teraz wartością parametru state będzie obiekt filtrów
+const filtersReducer = (state = filtersInitialState, action) => {
+  switch (action.type) {
+    case "filters/setStatusFilter":
+      return {
+        ...state,
+        status: action.payload,
+      };
+    default:
+      return state;
+  }
+};
+
+import { combineReducers } from "redux";
+import { statusFilters } from "./constants";
+
+// Kod reduktorów tasksReducer i filtersReducer
+
+export const rootReducer = combineReducers({
+  tasks: tasksReducer,
+  filters: filtersReducer,
+});
